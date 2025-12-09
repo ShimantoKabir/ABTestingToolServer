@@ -20,6 +20,10 @@ from src.project.repository.ProjectRepositoryImp import ProjectRepositoryImp
 from src.db.repository.UserProjectLinkRepositoryImp import UserProjectLinkRepositoryImp
 from src.org.services.OrgService import OrgService
 from src.utils.FileService import FileService
+from src.experiment.services.ExperimentService import ExperimentService
+from src.experiment.repository.ExperimentRepositoryImp import ExperimentRepositoryImp
+from src.variation.services.VariationService import VariationService
+from src.variation.repository.VariationRepositoryImp import VariationRepositoryImp
 
 def getUserService(db: DBSessionDep, bgTask: BackgroundTasks) -> UserService:
   crypto = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -58,8 +62,6 @@ def getOrgService(db: DBSessionDep, bgTask: BackgroundTasks) -> OrgService:
   orgRepo = OrgRepositoryImp(db)
   userRepo = UserRepositoryImp(db)
   roleRepo = RoleRepositoryImp(db)
-  
-  # Change #1: Instantiate UserOrgLinkRepo and MenuTemplateRepo
   userOrgLinkRepo = UserOrgLinkRepositoryImp(db)
   mtRepo = MenuTemplateRepositoryImp(db)
   
@@ -67,7 +69,6 @@ def getOrgService(db: DBSessionDep, bgTask: BackgroundTasks) -> OrgService:
   fileService = getFileService()
   emailService = EmailServiceImp(bgTask)
   
-  # Change #2: Pass new repos to OrgService
   return OrgService(
     orgRepo, 
     userRepo, 
@@ -79,6 +80,16 @@ def getOrgService(db: DBSessionDep, bgTask: BackgroundTasks) -> OrgService:
     mtRepo
   )
 
+def getExperimentService(db: DBSessionDep) -> ExperimentService:
+  repo = ExperimentRepositoryImp(db)
+  projectRepo = ProjectRepositoryImp(db) 
+  return ExperimentService(repo, projectRepo)
+
+def getVariationService(db: DBSessionDep) -> VariationService:
+  repo = VariationRepositoryImp(db)
+  experimentRepo = ExperimentRepositoryImp(db)
+  return VariationService(repo, experimentRepo)
+
 UserServiceDep = Annotated[UserService, Depends(getUserService)]
 MenuServiceDep = Annotated[MenuService, Depends(getMenuService)]
 AuthServiceDep = Annotated[AuthService, Depends(getAuthService)]
@@ -86,3 +97,5 @@ RoleServiceDep = Annotated[RoleService, Depends(getRoleService)]
 MenuTemplateServiceDep = Annotated[MenuTemplateService, Depends(getMenuTemplateService)]
 ProjectServiceDep = Annotated[ProjectService, Depends(getProjectService)]
 OrgServiceDep = Annotated[OrgService, Depends(getOrgService)]
+ExperimentServiceDep = Annotated[ExperimentService, Depends(getExperimentService)]
+VariationServiceDep = Annotated[VariationService, Depends(getVariationService)]

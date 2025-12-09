@@ -13,10 +13,11 @@ from fastapi.staticfiles import StaticFiles
 from src.action import ActionRouter
 from src.project import ProjectRouter
 from src.org import OrgRouter
+from src.experiment import ExperimentRouter 
+from src.variation import VariationRouter
 from core import app
 
-# IMPORT #1: Import all SQLModel models so SQLAlchemy can resolve relationships
-# This must be done before any router that uses these models
+# IMPORT Models
 from src.user.model.User import User
 from src.org.model.Organization import Organization
 from src.menu.model.Menu import Menu
@@ -40,6 +41,8 @@ app.include_router(RoleRouter.routes, dependencies=[Depends(getEmail), Depends(H
 app.include_router(MenuTemplateRouter.routes, dependencies=[Depends(getEmail), Depends(HTTPBearer())])
 app.include_router(ActionRouter.routes, dependencies=[Depends(getEmail), Depends(HTTPBearer())])
 app.include_router(ProjectRouter.routes, dependencies=[Depends(getEmail), Depends(HTTPBearer())])
+app.include_router(ExperimentRouter.routes, dependencies=[Depends(getEmail), Depends(HTTPBearer())])
+app.include_router(VariationRouter.routes, dependencies=[Depends(getEmail), Depends(HTTPBearer())])
 app.include_router(AuthRouter.routes)
 app.include_router(UserInsecureRouter.routes)
 app.include_router(OrgRouter.routes)
@@ -55,7 +58,7 @@ app.add_middleware(
   CORSMiddleware,
   allow_origins=origins,             
   allow_credentials=True,            
-  allow_methods=["*"],               
+  allow_methods=["*"],        
   allow_headers=["*"],               
 )
 

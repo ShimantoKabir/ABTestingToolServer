@@ -283,10 +283,26 @@ def getOrgService(db: DBSessionDep, bgTask: BackgroundTasks) -> OrgService:
   orgRepo = OrgRepositoryImp(db)
   userRepo = UserRepositoryImp(db)
   roleRepo = RoleRepositoryImp(db)
+  
+  # Change #1: Instantiate UserOrgLinkRepo and MenuTemplateRepo
+  userOrgLinkRepo = UserOrgLinkRepositoryImp(db)
+  mtRepo = MenuTemplateRepositoryImp(db)
+  
   crypto = CryptContext(schemes=["bcrypt"], deprecated="auto")
   fileService = getFileService()
   emailService = EmailServiceImp(bgTask)
-  return OrgService(orgRepo, userRepo, roleRepo, crypto, fileService, emailService)
+  
+  # Change #2: Pass new repos to OrgService
+  return OrgService(
+    orgRepo, 
+    userRepo, 
+    roleRepo, 
+    crypto, 
+    fileService, 
+    emailService, 
+    userOrgLinkRepo, 
+    mtRepo
+  )
 
 UserServiceDep = Annotated[UserService, Depends(getUserService)]
 MenuServiceDep = Annotated[MenuService, Depends(getMenuService)]
@@ -295,8 +311,6 @@ RoleServiceDep = Annotated[RoleService, Depends(getRoleService)]
 MenuTemplateServiceDep = Annotated[MenuTemplateService, Depends(getMenuTemplateService)]
 ProjectServiceDep = Annotated[ProjectService, Depends(getProjectService)]
 OrgServiceDep = Annotated[OrgService, Depends(getOrgService)]
-
-
 
 file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\docker-compose.yml
 version: "3.8"
@@ -654,12 +668,12 @@ def downgrade() -> None:
     ${downgrades if downgrades else "pass"}
 
 
-file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\migrations\versions\69affcf297ab_init.py
+file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\migrations\versions\2e23d57b8c4c_init.py
 """init
 
-Revision ID: 69affcf297ab
+Revision ID: 2e23d57b8c4c
 Revises: 
-Create Date: 2025-12-03 12:03:18.135013
+Create Date: 2025-12-05 17:49:21.784590
 
 """
 from typing import Sequence, Union
@@ -670,7 +684,7 @@ import sqlmodel
 
 
 # revision identifiers, used by Alembic.
-revision: str = '69affcf297ab'
+revision: str = '2e23d57b8c4c'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -754,15 +768,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['orgId'], ['organization.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('userorglink',
-    sa.Column('userId', sa.Integer(), nullable=False),
-    sa.Column('orgId', sa.Integer(), nullable=False),
-    sa.Column('disabled', sa.Boolean(), nullable=False),
-    sa.Column('super', sa.Boolean(), nullable=False),
-    sa.ForeignKeyConstraint(['orgId'], ['organization.id'], ),
-    sa.ForeignKeyConstraint(['userId'], ['userinfo.id'], ),
-    sa.PrimaryKeyConstraint('userId', 'orgId')
-    )
     op.create_table('experiment',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('js', sa.Text(), nullable=True),
@@ -779,6 +784,19 @@ def upgrade() -> None:
     sa.Column('updatedAt', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['projectId'], ['project.id'], ),
     sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('userorglink',
+    sa.Column('userId', sa.Integer(), nullable=False),
+    sa.Column('orgId', sa.Integer(), nullable=False),
+    sa.Column('roleId', sa.Integer(), nullable=True),
+    sa.Column('menuTemplateId', sa.Integer(), nullable=True),
+    sa.Column('disabled', sa.Boolean(), nullable=False),
+    sa.Column('super', sa.Boolean(), nullable=False),
+    sa.ForeignKeyConstraint(['menuTemplateId'], ['menutemplate.id'], ),
+    sa.ForeignKeyConstraint(['orgId'], ['organization.id'], ),
+    sa.ForeignKeyConstraint(['roleId'], ['role.id'], ),
+    sa.ForeignKeyConstraint(['userId'], ['userinfo.id'], ),
+    sa.PrimaryKeyConstraint('userId', 'orgId')
     )
     op.create_table('userprojectlink',
     sa.Column('userId', sa.Integer(), nullable=False),
@@ -834,8 +852,8 @@ def downgrade() -> None:
     op.drop_table('metrics')
     op.drop_table('condition')
     op.drop_table('userprojectlink')
-    op.drop_table('experiment')
     op.drop_table('userorglink')
+    op.drop_table('experiment')
     op.drop_table('role')
     op.drop_index(op.f('ix_project_name'), table_name='project')
     op.drop_table('project')
@@ -1185,14 +1203,23 @@ class PermissionType(StrEnum):
   VIEWER = "Viewer"
 
 file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\src\db\links\UserOrgLink.py
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, Relationship
+from typing import Optional
 
 class UserOrgLink(SQLModel, table=True):
   userId: int | None = Field(default=None, foreign_key="userinfo.id", primary_key=True)
   orgId: int | None = Field(default=None, foreign_key="organization.id", primary_key=True)
+  
+  # 1. Added Role Foreign Key AND Relationship
+  roleId: int | None = Field(default=None, foreign_key="role.id")
+  role: Optional["Role"] = Relationship(back_populates="userOrgLinks") # type: ignore 
+
+  # 2. Added MenuTemplate Foreign Key AND Relationship
+  menuTemplateId: int | None = Field(default=None, foreign_key="menutemplate.id")
+  menuTemplate: Optional["MenuTemplate"] = Relationship(back_populates="userOrgLinks") # type: ignore 
+
   disabled: bool = Field(default=True , nullable=False)
   super: bool = Field(default=False , nullable=False)
-
 
 file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\src\db\links\UserProjectLink.py
 from sqlmodel import Field, SQLModel
@@ -1704,10 +1731,14 @@ class MenuTemplate(SQLModel, table=True):
   id: int = Field(default=None, primary_key=True)
   name: str = Field(default=None, nullable=False)
   orgId: Optional[int] = Field(default=None, foreign_key="organization.id")
-  org: Optional["Organization"] = Relationship(back_populates="menuTemplates") # type: ignore
+  org: Optional["Organization"] = Relationship(back_populates="menuTemplates") # type: ignore 
   userId: Optional[int] = Field(default=None, foreign_key="userinfo.id")
-  user: Optional["User"] = Relationship(back_populates="menuTemplates") # type: ignore
+  user: Optional["User"] = Relationship(back_populates="menuTemplates") # type: ignore 
   tree: str = Field(default=None, nullable=False)
+  
+  # 1. Added relationship back to UserOrgLink
+  userOrgLinks: list["UserOrgLink"] = Relationship(back_populates="menuTemplate") # type: ignore 
+
   createdAt: Optional[datetime] = Field(
     sa_column=Column(
       DateTime(timezone=True), server_default=func.now(), nullable=True
@@ -1718,9 +1749,6 @@ class MenuTemplate(SQLModel, table=True):
       DateTime(timezone=True), onupdate=func.now(), nullable=True
     )
   )
-  
-
-
 
 file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\src\menutemplate\repository\MenuTemplateRepository.py
 from abc import ABC, abstractmethod
@@ -1880,42 +1908,81 @@ class Metrics(SQLModel, table=True):
 
 file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\src\org\OrgRouter.py
 from fastapi import APIRouter
-from src.org.dtos.OrgAddReqDto import OrgAddReqDto
-from src.org.dtos.OrgAddResDto import OrgAddResDto
+from src.org.dtos.OrgCreateRequestDto import OrgCreateRequestDto
+from src.org.dtos.OrgCreateResponseDto import OrgCreateResponseDto
 from di import OrgServiceDep
 
 routes = APIRouter()
 
 @routes.post(
   "/organizations", 
-  response_model=OrgAddResDto, 
+  response_model=OrgCreateResponseDto, 
   tags=["organization"],
   name="act:create-organization"
 )
 async def createOrganization(
-    reqDto: OrgAddReqDto,
+    # 1. Switched to the new Create DTOs
+    reqDto: OrgCreateRequestDto,
     orgService: OrgServiceDep
-  ) -> OrgAddResDto:
+  ) -> OrgCreateResponseDto:
   return orgService.createOrg(reqDto)
 
 file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\src\org\dtos\OrgAddReqDto.py
 from dataclasses import dataclass
-from typing import List
 from pydantic import constr, EmailStr
 
 @dataclass
 class OrgAddReqDto:
-  name: constr(min_length=1) # type: ignore
+  # 1. The email of the existing user to add
   email: EmailStr
-  password: constr(min_length=8) # type: ignore
-
-
+  
+  # 2. The domain of the organization to add them to
+  domain: constr(min_length=1) # type: ignore
+  
+  # 3. Permissions are mandatory when adding a user
+  roleId: int
+  menuTemplateId: int
 
 file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\src\org\dtos\OrgAddResDto.py
 from dataclasses import dataclass
 
 @dataclass
 class OrgAddResDto:
+  id: int
+  name: str 
+  email: str
+
+file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\src\org\dtos\OrgCreateRequestDto.py
+from dataclasses import dataclass
+from pydantic import constr, EmailStr, field_validator
+from config import Config
+
+@dataclass
+class OrgCreateRequestDto:
+  name: constr(min_length=1) # type: ignore
+  email: EmailStr
+  password: constr(min_length=1) # type: ignore
+
+  # 1. Added password validation logic here since this request creates a new user
+  @field_validator("password")
+  def validatePassword(cls, password):
+    if len(password) < int(Config.getValByKey("PASSWORD_MAX_CHAR")):
+      raise ValueError(f"Password must be at least {Config.getValByKey("PASSWORD_MAX_CHAR")} characters long!")
+    if not any(char.isupper() for char in password):
+      raise ValueError("Password must contain at least one uppercase letter!")
+    if not any(char.islower() for char in password):
+      raise ValueError("Password must contain at least one lowercase letter!")
+    if not any(char.isdigit() for char in password):
+      raise ValueError("Password must contain at least one digit!")
+    if not any(char in "!@#$%^&*()" for char in password):
+      raise ValueError("Password must contain at least one special character!")
+    return password
+
+file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\src\org\dtos\OrgCreateResponseDto.py
+from dataclasses import dataclass
+
+@dataclass
+class OrgCreateResponseDto:
   id: int
   name: str 
   email: str
@@ -2001,8 +2068,9 @@ class OrgRepositoryImp(OrgRepository):
 file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\src\org\services\OrgService.py
 import random
 from src.org.repository.OrgRepository import OrgRepository
-from src.org.dtos.OrgAddReqDto import OrgAddReqDto
-from src.org.dtos.OrgAddResDto import OrgAddResDto
+# 1. Update imports to use the new DTOs
+from src.org.dtos.OrgCreateRequestDto import OrgCreateRequestDto
+from src.org.dtos.OrgCreateResponseDto import OrgCreateResponseDto
 from src.org.model.Organization import Organization
 from src.user.repository.UserRepository import UserRepository
 from src.user.model.User import User
@@ -2015,6 +2083,7 @@ from src.menutemplate.repository.MenuTemplateRepository import MenuTemplateRepos
 from src.menutemplate.model.MenuTemplate import MenuTemplate
 from src.email.EmailService import EmailService
 from src.utils.Constants import OTP_POPULATION_DIGITS
+from src.db.repository.UserOrgLinkRepository import UserOrgLinkRepository
 
 class OrgService:
   def __init__(
@@ -2024,7 +2093,9 @@ class OrgService:
       roleRepo: RoleRepository,
       crypto: CryptContext,
       fileService: FileService,
-      emailService : EmailService
+      emailService : EmailService,
+      userOrgLinkRepo: UserOrgLinkRepository,
+      mtRepo: MenuTemplateRepository
     ):
     self.repo = orgRepo
     self.userRepo = userRepo
@@ -2032,9 +2103,11 @@ class OrgService:
     self.crypto = crypto
     self.fileService = fileService
     self.emailService = emailService
+    self.userOrgLinkRepo = userOrgLinkRepo
+    self.mtRepo = mtRepo
 
-  def createOrg(self, reqDto: OrgAddReqDto) -> OrgAddResDto:
-    # 1. Automatic Domain Extraction
+  # 2. Update signature to use OrgCreateRequestDto -> OrgCreateResponseDto
+  def createOrg(self, reqDto: OrgCreateRequestDto) -> OrgCreateResponseDto:
     try:
         domain = reqDto.email.split("@")[1]
     except IndexError:
@@ -2042,7 +2115,6 @@ class OrgService:
         status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email format"
       )
 
-    # 2. Validation: Ensure Org does not exist
     existingOrg = self.repo.getByDomain(domain)
     if existingOrg:
       raise HTTPException(
@@ -2050,7 +2122,6 @@ class OrgService:
         detail="Organization already exists with this domain!"
       )
     
-    # 3. Validation: Ensure User does not exist
     existingUser = self.userRepo.getUserByEmail(reqDto.email)
     if existingUser:
       raise HTTPException(
@@ -2058,39 +2129,46 @@ class OrgService:
         detail="User already exists with this email!"
       )
 
-    # 4. Create Organization
     newOrg = self.repo.add(Organization(
       name=reqDto.name,
       email=reqDto.email,
       domain=domain
     ))
 
-    # 4. Create Role
-    self.roleRepo.add(Role(name="Admin",orgId=newOrg.id))
+    adminRole = self.roleRepo.add(Role(name="Admin",orgId=newOrg.id))
 
     adminMenuTree = self.fileService.readFile("static/menu.json")
-    adminMenuTemplate = MenuTemplate(
+    
+    adminMenuTemplate = self.mtRepo.add(MenuTemplate(
       name="Admin Menu Template",
       orgId=newOrg.id,
       tree=adminMenuTree
-    )
+    ))
 
     otp = self.generateOtp()
 
-    # 5. Create User and Link Org
     truncatedPassword = reqDto.password[:72]
+    
     newUser = self.userRepo.add(User(
       email=reqDto.email,
       password=self.crypto.hash(truncatedPassword),
       verified=False, 
       otp=otp,
-      orgs=[newOrg],
-      menuTemplates=[adminMenuTemplate]
+      orgs=[newOrg]
     ))
+
+    userOrgLink = self.userOrgLinkRepo.get(userId=newUser.id, orgId=newOrg.id)
+    if userOrgLink:
+      userOrgLink.roleId = adminRole.id
+      userOrgLink.menuTemplateId = adminMenuTemplate.id
+      userOrgLink.super = True 
+      userOrgLink.disabled = False
+      self.userOrgLinkRepo.edit(userOrgLink)
 
     self.emailService.sendAccountVerificationOtp(newUser.email, otp)
 
-    return OrgAddResDto(
+    # 3. Return the new Response DTO
+    return OrgCreateResponseDto(
       id=newOrg.id, 
       name=newOrg.name, 
       email=newOrg.email
@@ -2419,8 +2497,13 @@ from sqlalchemy import Column, DateTime, func
 class Role(SQLModel, table=True):
   id: int = Field(default=None, primary_key=True)
   name: str = Field(default=None, nullable=True)  
-  org: Optional["Organization"] = Relationship(back_populates="roles") # type: ignore
+  org: Optional["Organization"] = Relationship(back_populates="roles") # type: ignore 
   orgId: Optional[int] = Field(default=None, foreign_key="organization.id")
+  
+  # 1. Added relationship back to UserOrgLink
+  # This allows you to access role.userOrgLinks to see who has this role
+  userOrgLinks: list["UserOrgLink"] = Relationship(back_populates="role") # type: ignore
+
   createdAt: Optional[datetime] = Field(
     sa_column=Column(
       DateTime(timezone=True), server_default=func.now(), nullable=True
@@ -2431,8 +2514,6 @@ class Role(SQLModel, table=True):
       DateTime(timezone=True), onupdate=func.now(), nullable=True
     )
   )
-    
-
 
 file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\src\role\repository\RoleRepository.py
 from abc import ABC, abstractmethod
@@ -2677,6 +2758,8 @@ class UpdateUserRequestDto:
   firstName: Optional[str] = None  # Not required
   lastName: Optional[str] = None  # Not required
   contactNumber: Optional[str] = None  # Not required
+  roleId: Optional[int] = None 
+  menuTemplateId: Optional[int] = None
 
 file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\src\user\dtos\UpdateUserResponseDto.py
 from dataclasses import dataclass
@@ -2933,28 +3016,17 @@ class UserService:
   def createUser(self, reqDto : UserCreateRequestDto) -> UserCreateResponseDto:
     otp = self.generateOtp()
     
-    # FIX #1: Truncate password to 72 bytes (bcrypt limit)
-    # bcrypt cannot hash passwords longer than 72 bytes. This prevents the error:
-    # "ValueError: password cannot be longer than 72 bytes"
     truncatedPassword = reqDto.password[:72]
     
     newUser = self.repo.add(User(
       email=reqDto.email,
       password=self.crypto.hash(truncatedPassword),
       otp=otp,
-      orgs=[],
-      menuTemplates=[]
+      orgs=[],         
+      menuTemplates=[] 
     ))
 
     self.emailService.sendAccountVerificationOtp(newUser.email, otp)
-
-    org: Organization|None = newUser.orgs[0] if newUser.orgs[0] else None
-
-    if org is not None:
-      userOrgLink: UserOrgLink = self.userOrgLinkRepo.get(userId=newUser.id,orgId=org.id)
-      userOrgLink.disabled = False
-      userOrgLink.super = True
-      updatedUserOrgLink = self.userOrgLinkRepo.edit(userOrgLink=userOrgLink)
 
     resUser = UserCreateResponseDto(id=newUser.id,email=newUser.email,message=USER_CREATION_RES_MSG)
     return resUser
@@ -3024,35 +3096,36 @@ class UserService:
     timeDiff = end - start
     return timeDiff.seconds
 
+  # 1. Update logic to use the strict fields from OrgAddReqDto
   def addOrg(self, reqDto: OrgAddReqDto, authMail: str) -> OrgAddResDto: 
-    dbUser: User = self.repo.getUserByEmail(authMail)
+    adminUser: User = self.repo.getUserByEmail(authMail)
+    if not adminUser:
+      raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin user not found!")
 
-    if not dbUser:
-      raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No user found by this email!")
-    
-    try:
-      domain = reqDto.email.split("@")[1]
-    except IndexError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email format!")
+    targetUser: User = self.repo.getUserByEmail(reqDto.email)
+    if not targetUser:
+      raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User to add not found!")
 
-    isDomainExist = any(org.domain == reqDto.domain for org in dbUser.orgs)
-
-    if isDomainExist:
-      raise HTTPException(status_code=status.HTTP_302_FOUND, detail="This organization already added for this user!")
-    
+    # 2. Domain is now mandatory in the DTO, so we use it directly
     org = self.orgRepo.getByDomain(reqDto.domain)
 
     if not org:
-      org = self.orgRepo.add(
-        Organization(
-          name=reqDto.name,
-          email=reqDto.email,
-          domain=domain
-        )
-      )
+      raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found!")
 
-    dbUser.orgs.append(org)
-    self.repo.updateUser(dbUser)
+    existingLink = self.userOrgLinkRepo.get(userId=targetUser.id, orgId=org.id)
+    if existingLink:
+      raise HTTPException(status_code=status.HTTP_302_FOUND, detail="User is already in this organization!")
+    
+    newLink = UserOrgLink(
+      userId=targetUser.id,
+      orgId=org.id,
+      roleId=reqDto.roleId,
+      menuTemplateId=reqDto.menuTemplateId,
+      disabled=False,
+      super=False
+    )
+    
+    self.userOrgLinkRepo.add(newLink)
 
     return OrgAddResDto(id=org.id, name=org.name, email=org.email)
 
@@ -3081,6 +3154,12 @@ class UserService:
 
       if reqDto.super is not None:
         userOrgLink.super = reqDto.super
+      
+      if reqDto.roleId is not None:
+        userOrgLink.roleId = reqDto.roleId
+        
+      if reqDto.menuTemplateId is not None:
+        userOrgLink.menuTemplateId = reqDto.menuTemplateId
 
       self.userOrgLinkRepo.edit(userOrgLink=userOrgLink)
 
@@ -3096,6 +3175,7 @@ class UserService:
   def getUsers(self, reqDto: PaginationRequestDto)->PaginationResponseDto[UserResponseDto]:
     total: int|None = reqDto.total
     userResponseDtoList: list[UserResponseDto] = []
+    
     users: list[User] = self.repo.getAllUser(rows=reqDto.rows, page=reqDto.page, orgId=reqDto.orgId)
 
     if reqDto.total is None or reqDto.total == 0:
@@ -3116,14 +3196,6 @@ class UserService:
       userResponseDtoList.append(urDto)
 
     return PaginationResponseDto[UserResponseDto](items=userResponseDtoList, total=total)
-
-
-
-
-
-
-    
-    
 
 file path: C:\Users\Shahriar\Documents\Projects\Personal\PyAdmin\src\utils\Constants.py
 OTP_POPULATION_DIGITS = "0123456789"
