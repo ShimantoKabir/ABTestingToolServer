@@ -1,9 +1,11 @@
+from src.experiment.model.ExperimentStatus import ExperimentStatus
 from src.experiment.repository.ExperimentRepository import ExperimentRepository
 from src.experiment.model.Experiment import Experiment
 from db import DBSessionDep
 from fastapi import status, HTTPException
 from sqlmodel import select
 from sqlalchemy import func
+from sqlalchemy.orm import selectinload
 
 class ExperimentRepositoryImp(ExperimentRepository):
   def __init__(self, db: DBSessionDep):
@@ -40,3 +42,17 @@ class ExperimentRepositoryImp(ExperimentRepository):
     self.db.commit()
     self.db.refresh(experiment)
     return experiment
+  
+  def getAllActive(self, rows: int, page: int, projectId: int) -> list[Experiment]:
+    offset: int = (page - 1) * rows
+    return self.db.exec(
+      select(Experiment)
+      .where(Experiment.projectId == projectId)
+      .where(Experiment.status == ExperimentStatus.ACTIVE)
+      .options(
+          selectinload(Experiment.conditions),
+          selectinload(Experiment.variations),
+          selectinload(Experiment.metrics)
+      )
+      .offset(offset).limit(rows)
+    ).all()

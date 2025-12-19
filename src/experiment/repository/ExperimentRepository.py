@@ -22,3 +22,7 @@ class ExperimentRepository(ABC):
   @abstractmethod
   def edit(self, experiment: Experiment) -> Experiment:
     pass
+
+  @abstractmethod
+  def getAllActive(self, rows: int, page: int, projectId: int) -> list[Experiment]:
+    pass

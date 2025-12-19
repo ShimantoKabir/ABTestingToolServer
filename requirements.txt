@@ -2,10 +2,10 @@ psycopg2==2.9.10
 alembic==1.15.2
 sqlmodel==0.0.24
 python-dotenv==1.1.0
-# Pinned bcrypt and passlib for compatibility (fixes AttributeError: module 'bcrypt' has no attribute '__about__')
 bcrypt==4.1.2
 passlib[bcrypt]==1.7.4
 pyjwt==2.10.1
 fastapi[standard]
 gunicorn
 httptools==0.7.1
+mmh3=5.2.0

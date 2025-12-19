@@ -22,6 +22,7 @@
     "pyjwt",
     "qualname",
     "repr",
+    "selectinload",
     "sqlalchemy",
     "sqlmodel",
     "sqltypes",
