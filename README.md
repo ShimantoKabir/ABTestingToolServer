@@ -82,7 +82,7 @@ OTP_EXPIRY_DURATION=180
 
 ### Build & Start Services
 
-docker-compose up --build
+`docker-compose up --build`
 
 Services started:
 
@@ -92,7 +92,7 @@ Services started:
 
 ### Run Database Migrations
 
-docker-compose exec web alembic upgrade head
+`docker-compose exec web alembic upgrade head`
 
 ### API Documentation
 
@@ -105,21 +105,21 @@ docker-compose exec web alembic upgrade head
 
 ### 1️⃣ Create Virtual Environment
 
-python -m venv venv
+`python -m venv venv`
 
 Activate it:
 
 Windows:
-venv\Scripts\activate
+`venv\Scripts\activate`
 
 Linux / macOS:
-source venv/bin/activate
+`source venv/bin/activate`
 
 ---
 
 ### 2️⃣ Install Dependencies
 
-pip install -r requirements.txt
+`pip install -r requirements.txt`
 
 ---
 
@@ -137,15 +137,15 @@ DB_URL=sqlite:///db.sqlite
 
 Initialize migrations (first time only):
 
-alembic init migrations
+`alembic init migrations`
 
 Generate migration:
 
-alembic revision --autogenerate -m "initial commit"
+`alembic revision --autogenerate -m "initial commit"`
 
 Apply migrations:
 
-alembic upgrade head
+`alembic upgrade head`
 
 ---
 
@@ -153,11 +153,11 @@ alembic upgrade head
 
 Using Uvicorn:
 
-uvicorn main:app --reload
+`uvicorn main:app --reload`
 
 Or using FastAPI CLI:
 
-fastapi dev main.py
+`fastapi dev main.py`
 
 Server URL:
 http://127.0.0.1:8000
@@ -211,15 +211,15 @@ Mail configuration is controlled via environment variables.
 
 Stop Docker containers:
 
-docker-compose down
+`docker-compose down`
 
 Remove containers and volumes (WARNING: deletes DB data):
 
-docker-compose down -v
+`docker-compose down -v`
 
 Create a new migration:
 
-alembic revision --autogenerate -m "your message"
+`alembic revision --autogenerate -m "your message"`
 
 ---
 

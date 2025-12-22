@@ -34,6 +34,7 @@
     "userinfos",
     "userorglink",
     "userprojectlink",
+    "Uvicorn",
     "venv"
   ],
   "sqltools.connections": [
