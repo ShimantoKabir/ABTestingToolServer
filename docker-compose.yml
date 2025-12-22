@@ -38,12 +38,26 @@ services:
 
   mail:
     image: mailhog/mailhog
-    container_name: ab_mail
+    container_name: ab-mail
     ports:
       - "1025:1025" # SMTP port (for your app to send mail)
       - "8025:8025" # Web UI port (for you to view mail)
     networks:
       - default
 
+  minio:
+    image: minio/minio
+    container_name: ab-storage
+    ports:
+      - "9000:9000" # API Port (for your app)
+      - "9001:9001" # Console Port (for your browser)
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
 volumes:
   postgres_data:
+  minio_data:
