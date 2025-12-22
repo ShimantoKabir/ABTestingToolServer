@@ -45,8 +45,8 @@
       "port": 5433,
       "driver": "PostgreSQL",
       "name": "docker-db",
-      "username": "abuser",
-      "password": "123456",
+      "username": "postgres",
+      "password": "postgres",
       "database": "abdb"
     }
   ],

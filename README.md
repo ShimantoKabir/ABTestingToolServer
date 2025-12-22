@@ -68,10 +68,10 @@ Create a file named `.env.dev` in the project root.
     REDIS_URL=redis://redis:6379/0
     MAX_TRAFFIC_VAL=10000
 
-    HOST=smtp.mailmug.net
-    PORT=2525
-    UNAME=your_username
-    PASSWORD=your_password
+    HOST=mail
+    PORT=1025
+    UNAME=null
+    PASSWORD=null
     SENDER=admin@mail.com
 
     OTP_EXPIRY_DURATION=180
@@ -197,10 +197,11 @@ Public endpoints include:
 
 ## 📧 Mail Service
 
-For development purposes, **Mailmug** is used to send:
+For development purposes, **Mailmug/MailHog** is used to send:
 
 - Account verification OTP
 - Forgot password OTP
+- Open the MailHog Web UI at http://localhost:8025
 
 Mail configuration is controlled via environment variables.
 

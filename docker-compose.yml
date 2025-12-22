@@ -19,8 +19,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=abuser
-      - POSTGRES_PASSWORD=123456
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=abdb
     ports:
       - "5433:5432"
@@ -35,6 +35,15 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
+
+  mail:
+    image: mailhog/mailhog
+    container_name: ab_mail
+    ports:
+      - "1025:1025" # SMTP port (for your app to send mail)
+      - "8025:8025" # Web UI port (for you to view mail)
+    networks:
+      - default
 
 volumes:
   postgres_data:
