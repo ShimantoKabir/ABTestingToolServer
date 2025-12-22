@@ -1,6 +1,6 @@
-# PyAdmin
+# ABTestingTool
 
-PyAdmin is a **user, role, menu, and API access management system** built with **FastAPI**.
+ABTestingTool is a **user, role, menu, and API access management system** built with **FastAPI**.
 It also includes an **experimentation and decision engine** supporting A/B testing,
 personalization, Redis caching, and PostgreSQL.
 
@@ -38,7 +38,7 @@ personalization, Redis caching, and PostgreSQL.
 
 ## 📂 Project Structure (High Level)
 
-    PyAdmin/
+    ABTestingTool/
     ├── src/                 Application source code
     ├── migrations/          Alembic migrations
     ├── main.py              Application entry point
