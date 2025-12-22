@@ -1,6 +1,6 @@
-# ABTestingTool
+# PyAdmin
 
-ABTestingTool is a **user, role, menu, and API access management system** built with **FastAPI**.
+PyAdmin is a **user, role, menu, and API access management system** built with **FastAPI**.
 It also includes an **experimentation and decision engine** supporting A/B testing,
 personalization, Redis caching, and PostgreSQL.
 
@@ -38,18 +38,18 @@ personalization, Redis caching, and PostgreSQL.
 
 ## 📂 Project Structure (High Level)
 
-ABTestingTool/
-├── src/ Application source code
-├── migrations/ Alembic migrations
-├── main.py Application entry point
-├── core.py FastAPI app instance
-├── db.py Database session & engine
-├── di.py Dependency injection
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-├── .env.dev
-└── README.md
+    PyAdmin/
+    ├── src/                 Application source code
+    ├── migrations/          Alembic migrations
+    ├── main.py              Application entry point
+    ├── core.py              FastAPI app instance
+    ├── db.py                Database session & engine
+    ├── di.py                Dependency injection
+    ├── Dockerfile
+    ├── docker-compose.yml
+    ├── requirements.txt
+    ├── .env.dev
+    └── README.md
 
 ---
 
@@ -57,24 +57,24 @@ ABTestingTool/
 
 Create a file named `.env.dev` in the project root.
 
-DB_URL=postgresql://abuser:123456@db:5432/abdb
-SECRET_KEY=your_secret_key
-ALGORITHM=HS256
+    DB_URL=postgresql://abuser:123456@db:5432/abdb
+    SECRET_KEY=your_secret_key
+    ALGORITHM=HS256
 
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-REFRESH_TOKEN_EXPIRE_MINUTES=70
-PASSWORD_MAX_CHAR=8
+    ACCESS_TOKEN_EXPIRE_MINUTES=60
+    REFRESH_TOKEN_EXPIRE_MINUTES=70
+    PASSWORD_MAX_CHAR=8
 
-REDIS_URL=redis://redis:6379/0
-MAX_TRAFFIC_VAL=10000
+    REDIS_URL=redis://redis:6379/0
+    MAX_TRAFFIC_VAL=10000
 
-HOST=smtp.mailmug.net
-PORT=2525
-UNAME=your_username
-PASSWORD=your_password
-SENDER=admin@mail.com
+    HOST=smtp.mailmug.net
+    PORT=2525
+    UNAME=your_username
+    PASSWORD=your_password
+    SENDER=pyadmin@mail.com
 
-OTP_EXPIRY_DURATION=180
+    OTP_EXPIRY_DURATION=180
 
 ---
 
@@ -82,7 +82,7 @@ OTP_EXPIRY_DURATION=180
 
 ### Build & Start Services
 
-`docker-compose up --build`
+    docker-compose up --build
 
 Services started:
 
@@ -92,7 +92,7 @@ Services started:
 
 ### Run Database Migrations
 
-`docker-compose exec web alembic upgrade head`
+    docker-compose exec web alembic upgrade head
 
 ### API Documentation
 
@@ -105,21 +105,21 @@ Services started:
 
 ### 1️⃣ Create Virtual Environment
 
-`python -m venv venv`
+    python -m venv venv
 
 Activate it:
 
 Windows:
-`venv\Scripts\activate`
+venv\Scripts\activate
 
 Linux / macOS:
-`source venv/bin/activate`
+source venv/bin/activate
 
 ---
 
 ### 2️⃣ Install Dependencies
 
-`pip install -r requirements.txt`
+    pip install -r requirements.txt
 
 ---
 
@@ -129,7 +129,7 @@ Create `.env.dev`
 
 SQLite (local testing):
 
-DB_URL=sqlite:///db.sqlite
+    DB_URL=sqlite:///db.sqlite
 
 ---
 
@@ -137,15 +137,15 @@ DB_URL=sqlite:///db.sqlite
 
 Initialize migrations (first time only):
 
-`alembic init migrations`
+    alembic init migrations
 
 Generate migration:
 
-`alembic revision --autogenerate -m "initial commit"`
+    alembic revision --autogenerate -m "initial commit"
 
 Apply migrations:
 
-`alembic upgrade head`
+    alembic upgrade head
 
 ---
 
@@ -153,11 +153,11 @@ Apply migrations:
 
 Using Uvicorn:
 
-`uvicorn main:app --reload`
+    uvicorn main:app --reload
 
 Or using FastAPI CLI:
 
-`fastapi dev main.py`
+    fastapi dev main.py
 
 Server URL:
 http://127.0.0.1:8000
@@ -168,8 +168,8 @@ http://127.0.0.1:8000
 
 Most endpoints require these headers:
 
-Authorization: Bearer <access_token>
-email: user@example.com
+    Authorization: Bearer <access_token>
+    email: user@example.com
 
 Public endpoints include:
 
@@ -188,11 +188,10 @@ Public endpoints include:
 3. Targeting rules evaluated
 4. Bucketing ensures consistent variation assignment
 5. Response includes:
-
-- Experiment
-- Variation
-- Conditions
-- Metrics
+   - Experiment
+   - Variation
+   - Conditions
+   - Metrics
 
 ---
 
@@ -211,15 +210,15 @@ Mail configuration is controlled via environment variables.
 
 Stop Docker containers:
 
-`docker-compose down`
+    docker-compose down
 
 Remove containers and volumes (WARNING: deletes DB data):
 
-`docker-compose down -v`
+    docker-compose down -v
 
 Create a new migration:
 
-`alembic revision --autogenerate -m "your message"`
+    alembic revision --autogenerate -m "your message"
 
 ---
 
