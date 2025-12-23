@@ -10,3 +10,4 @@ gunicorn
 httptools==0.7.1
 mmh3==5.2.0
 redis==5.0.1
+debugpy==1.8.0

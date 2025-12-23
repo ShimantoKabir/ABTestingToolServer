@@ -5,6 +5,7 @@ services:
     build: .
     ports:
       - "8000:8000"
+      - "5678:5678"
     env_file:
       - .env.dev
     depends_on:
@@ -12,7 +13,22 @@ services:
         condition: service_healthy # Wait for DB to be actually ready
       redis:
         condition: service_started # Wait for Redis container
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command:
+      [
+        "python",
+        "-m",
+        "debugpy",
+        "--listen",
+        "0.0.0.0:5678",
+        "-m",
+        "uvicorn",
+        "main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload",
+      ]
 
   db:
     image: postgres:13

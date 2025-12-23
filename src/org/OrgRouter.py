@@ -16,4 +16,5 @@ async def createOrganization(
     reqDto: OrgCreateRequestDto,
     orgService: OrgServiceDep
   ) -> OrgCreateResponseDto:
+  print("Creating organization with email:", reqDto.email)
   return orgService.createOrg(reqDto)

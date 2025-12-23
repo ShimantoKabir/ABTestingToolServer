@@ -40,8 +40,9 @@ class OrgService:
 
   # 2. Update signature to use OrgCreateRequestDto -> OrgCreateResponseDto
   def createOrg(self, reqDto: OrgCreateRequestDto) -> OrgCreateResponseDto:
+    
     try:
-        domain = reqDto.email.split("@")[1]
+      domain = reqDto.email.split("@")[1]
     except IndexError:
       raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email format"

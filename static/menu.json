@@ -3,37 +3,92 @@
     "key": "1",
     "label": "User",
     "data": {
-      "href": "/user"
+      "href": "/user",
+      "actions": [
+        "Act:Get-User",
+        "Act:Update-User",
+        "Act:Add-Organization",
+        "Act:Get-Users"
+      ]
     },
-    "icon": "pi pi-fw pi-calendar"
+    "icon": "pi pi-fw pi-users"
   },
   {
     "key": "2",
     "label": "Role",
     "data": {
-      "href": "/role"
+      "href": "/role",
+      "actions": ["Act:Create-Role", "Act:Get-Roles"]
     },
-    "icon": "pi pi-fw pi-star-fill"
+    "icon": "pi pi-fw pi-shield"
   },
   {
-    "key": "0",
+    "key": "4",
+    "label": "Project",
+    "data": {
+      "href": "/project",
+      "actions": ["Act:Create-Project", "Act:Get-Projects"]
+    },
+    "icon": "pi pi-fw pi-folder"
+  },
+  {
+    "key": "5",
+    "label": "Experiment",
+    "data": {
+      "href": "/experiment",
+      "actions": [
+        "Act:Create-Experiment",
+        "Act:Get-Experiments",
+        "Act:Get-Experiment",
+        "Act:Create-Variation",
+        "Act:Update-Variation",
+        "Act:Update-Traffic-Allocation",
+        "Act:Create-Condition",
+        "Act:Get-Conditions",
+        "Act:Delete-Condition"
+      ]
+    },
+    "icon": "pi pi-fw pi-bolt"
+  },
+  {
+    "key": "6",
+    "label": "Metric",
+    "data": {
+      "href": "/metric",
+      "actions": [
+        "Act:Create-Metric",
+        "Act:Get-Metrics",
+        "Act:Delete-Metric",
+        "Act:Track-Metric"
+      ]
+    },
+    "icon": "pi pi-fw pi-chart-bar"
+  },
+  {
+    "key": "7",
     "label": "Menu",
-    "icon": "pi pi-fw pi-inbox",
+    "icon": "pi pi-fw pi-bars",
     "children": [
       {
-        "key": "0-1",
+        "key": "7-1",
         "label": "Template",
-        "icon": "pi pi-fw pi-calendar-plus",
+        "icon": "pi pi-fw pi-list",
         "data": {
-          "href": "/menu/template"
+          "href": "/menu/template",
+          "actions": [
+            "Act:Create-Menu-Template",
+            "Act:Get-Menu-Template",
+            "Act:Get-Menu-Templates"
+          ]
         }
       },
       {
-        "key": "0-2",
+        "key": "7-2",
         "label": "Manage",
-        "icon": "pi pi-fw pi-calendar-plus",
+        "icon": "pi pi-fw pi-cog",
         "data": {
-          "href": "/menu/manage"
+          "href": "/menu/manage",
+          "actions": ["Act:Create-Menu", "Act:Get-Menus"]
         }
       }
     ]
