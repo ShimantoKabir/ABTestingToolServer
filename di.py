@@ -60,7 +60,8 @@ def getMenuTemplateService(db: DBSessionDep) -> MenuTemplateService:
 def getAuthService(db: DBSessionDep) -> AuthService:
   crypto = CryptContext(schemes=["bcrypt"], deprecated="auto")
   repo = AuthRepositoryImp(db)
-  return AuthService(repo, crypto)
+  userOrgLinkRepo = UserOrgLinkRepositoryImp(db)
+  return AuthService(repo, crypto, userOrgLinkRepo)
 
 def getProjectService(db: DBSessionDep) -> ProjectService:
   projectRepo = ProjectRepositoryImp(db)
