@@ -1,3 +1,4 @@
+from src.db.links.UserOrgLink import UserOrgLink
 from src.menutemplate.repository.MenuTemplateRepository import MenuTemplateRepository
 from src.menutemplate.model.MenuTemplate import MenuTemplate
 from db import DBSessionDep
@@ -37,6 +38,28 @@ class MenuTemplateRepositoryImp(MenuTemplateRepository):
       select(func.count(MenuTemplate.id))
       .where(MenuTemplate.orgId == orgId)
     ).one()
+  
+  def getByUserIdAndOrgId(self, userId: int, orgId: int) -> MenuTemplate:
+    # SQL: SELECT * FROM menutemplate 
+    #      JOIN userorglink ON menutemplate.id = userorglink.menuTemplateId
+    #      WHERE userorglink.userId = :userId AND userorglink.orgId = :orgId
+    
+    statement = (
+      select(MenuTemplate)
+      .join(UserOrgLink, MenuTemplate.id == UserOrgLink.menuTemplateId)
+      .where(UserOrgLink.userId == userId)
+      .where(UserOrgLink.orgId == orgId)
+    )
+    
+    result = self.db.exec(statement).first()
+
+    if not result:
+      raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, 
+        detail="No menu template found for this user and organization!"
+      )
+      
+    return result
 
 
 

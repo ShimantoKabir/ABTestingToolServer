@@ -1,3 +1,5 @@
+import json
+from typing import Any, List
 from src.menutemplate.repository.MenuTemplateRepository import MenuTemplateRepository
 from src.menutemplate.dtos.MenuTemplateCreateRequestDto import MenuTemplateCreateRequestDto
 from src.menutemplate.dtos.MenuTemplateCreateResponseDto import MenuTemplateCreateResponseDto
@@ -59,3 +61,13 @@ class MenuTemplateService:
       mtResponseDtoList.append(mtDto)
 
     return PaginationResponseDto[MenuTemplateResponseDto](items=mtResponseDtoList, total=total)
+  
+  def getMenuTreeByUserIdAndOrgId(self, userId: int, orgId: int) -> List[Any]:
+    menuTemplate = self.repo.getByUserIdAndOrgId(userId, orgId)
+    
+    # The tree is stored as a string in DB, we parse it to return actual JSON
+    try:
+      return json.loads(menuTemplate.tree)
+    except json.JSONDecodeError:
+      # Fallback if data is corrupted or empty
+      return []

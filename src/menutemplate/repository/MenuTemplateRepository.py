@@ -17,3 +17,7 @@ class MenuTemplateRepository(ABC):
   @abstractmethod
   def countAllMenuTemplate(self, orgId: int) -> int:
     pass
+
+  @abstractmethod
+  def getByUserIdAndOrgId(self, userId: int, orgId: int) -> MenuTemplate:
+    pass

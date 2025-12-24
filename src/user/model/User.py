@@ -18,7 +18,6 @@ class User(SQLModel, table=True):
   firstName: str = Field(default=None, nullable=True)
   lastName: str = Field(default=None, nullable=True)
   contactNumber: str = Field(default=None, nullable=True)
-  menuTemplates: list["MenuTemplate"] = Relationship(back_populates="user") # type: ignore
   projects: list["Project"] = Relationship(back_populates="users", link_model=UserProjectLink) # type: ignore
   createdAt: Optional[datetime] = Field(
     sa_column=Column(

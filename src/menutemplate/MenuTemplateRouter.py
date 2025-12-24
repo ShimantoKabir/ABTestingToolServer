@@ -1,3 +1,4 @@
+from typing import Any, List
 from fastapi import APIRouter
 from src.menutemplate.dtos.MenuTemplateCreateRequestDto import MenuTemplateCreateRequestDto
 from src.menutemplate.dtos.MenuTemplateCreateResponseDto import MenuTemplateCreateResponseDto
@@ -20,7 +21,7 @@ async def createRole(
   )->MenuTemplateCreateResponseDto:  
   return mtService.createMenuTemplate(reqDto)
 
-@routes.get("/menu-templates/{id}", tags=["menu"], name="act:get-menu-template")
+@routes.get("/menu-templates/{id:int}", tags=["menu"], name="act:get-menu-template")
 async def getById(id: int, mtService: MenuTemplateServiceDep)-> MenuTemplateResponseDto:
   return mtService.getById(id)
 
@@ -35,3 +36,19 @@ async def getMenuTemplates(
   mtService: MenuTemplateServiceDep
 ) -> PaginationResponseDto[MenuTemplateResponseDto]:  
   return mtService.getMenuTemplates(reqDto)
+
+@routes.get(
+  "/menu-templates/tree",
+  tags=["menu"],
+  name="act:get-user-menu-tree",
+  response_model=List[Any]
+)
+async def getMenuTree(
+  userId: int, 
+  orgId: int,
+  mtService: MenuTemplateServiceDep
+) -> List[Any]:
+  """
+  Fetch the menu tree assigned to a specific user within an organization.
+  """
+  return mtService.getMenuTreeByUserIdAndOrgId(userId, orgId)

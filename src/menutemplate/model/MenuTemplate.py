@@ -8,8 +8,6 @@ class MenuTemplate(SQLModel, table=True):
   name: str = Field(default=None, nullable=False)
   orgId: Optional[int] = Field(default=None, foreign_key="organization.id")
   org: Optional["Organization"] = Relationship(back_populates="menuTemplates") # type: ignore 
-  userId: Optional[int] = Field(default=None, foreign_key="userinfo.id")
-  user: Optional["User"] = Relationship(back_populates="menuTemplates") # type: ignore 
   tree: str = Field(default=None, nullable=False)
   
   # 1. Added relationship back to UserOrgLink

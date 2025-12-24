@@ -71,15 +71,26 @@ class AuthService:
         "disabled": o.disabled
       })
 
+    projects = []
+    for p in user.projects:
+      projects.append({
+        "id": p.id,
+        "name": p.name
+      })
+
     accessToken = jwt.encode({
       "sub" : user.email,
+      "userId": user.id,
       "orgs" : orgs,
+      "projects": projects,
       "exp" : accessTokenExpires
     }, Config.getValByKey("SECRET_KEY"), Config.getValByKey("ALGORITHM"))
 
     refreshToken = jwt.encode({
       "sub" : user.email,
+      "userId": user.id,
       "orgs" : orgs,
+      "projects": projects,
       "exp" : refreshTokenExpires
     }, Config.getValByKey("SECRET_KEY"), Config.getValByKey("ALGORITHM"))
     
