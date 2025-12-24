@@ -65,6 +65,10 @@ Services started:
 - PostgreSQL: localhost:5433
 - Redis: localhost:6379
 
+### Generate migration:
+
+    docker-compose exec web alembic revision --autogenerate -m "init"
+
 ### Run Database Migrations
 
     docker-compose exec web alembic upgrade head
@@ -116,7 +120,7 @@ Initialize migrations (first time only):
 
 Generate migration:
 
-    alembic revision --autogenerate -m "initial commit"
+    alembic revision --autogenerate -m "init"
 
 Apply migrations:
 
