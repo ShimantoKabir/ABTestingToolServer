@@ -17,6 +17,11 @@ from src.email.EmailService import EmailService
 from src.utils.Constants import OTP_POPULATION_DIGITS
 from src.db.repository.UserOrgLinkRepository import UserOrgLinkRepository
 from src.org.dtos.OrgSearchResDto import OrgSearchResDto
+from src.project.model.Project import Project
+from src.db.links.UserProjectLink import UserProjectLink
+from src.db.links.PermissionType import PermissionType
+from src.project.repository.ProjectRepository import ProjectRepository
+from src.db.repository.UserProjectLinkRepository import UserProjectLinkRepository
 
 class OrgService:
   def __init__(
@@ -28,7 +33,9 @@ class OrgService:
       fileService: FileService,
       emailService : EmailService,
       userOrgLinkRepo: UserOrgLinkRepository,
-      mtRepo: MenuTemplateRepository
+      mtRepo: MenuTemplateRepository,
+      projectRepo: ProjectRepository,
+      userProjectLinkRepo: UserProjectLinkRepository
     ):
     self.repo = orgRepo
     self.userRepo = userRepo
@@ -38,12 +45,15 @@ class OrgService:
     self.emailService = emailService
     self.userOrgLinkRepo = userOrgLinkRepo
     self.mtRepo = mtRepo
+    self.projectRepo = projectRepo
+    self.userProjectLinkRepo = userProjectLinkRepo
 
   # 2. Update signature to use OrgCreateRequestDto -> OrgCreateResponseDto
   def createOrg(self, reqDto: OrgCreateRequestDto) -> OrgCreateResponseDto:
     
     try:
       domain = reqDto.email.split("@")[1]
+      domainName = domain.split(".")[0]
     except IndexError:
       raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email format"
@@ -88,7 +98,8 @@ class OrgService:
       password=self.crypto.hash(truncatedPassword),
       verified=False, 
       otp=otp,
-      orgs=[newOrg]
+      orgs=[newOrg],
+      projects=[],
     ))
 
     userOrgLink = self.userOrgLinkRepo.get(userId=newUser.id, orgId=newOrg.id)
@@ -99,9 +110,22 @@ class OrgService:
       userOrgLink.disabled = False
       self.userOrgLinkRepo.edit(userOrgLink)
 
+    defaultProject = self.projectRepo.add(Project(
+      name=f"{domainName.capitalize()} Project",
+      description=f"Automatically created {domainName} project, during organization registration.",
+      orgId=newOrg.id
+    ))
+
+    self.userProjectLinkRepo.add(UserProjectLink(
+      userId=newUser.id,
+      projectId=defaultProject.id,
+      super=True,
+      permissionType=PermissionType.OWNER,
+      disabled=False
+    ))
+
     self.emailService.sendAccountVerificationOtp(newUser.email, otp)
 
-    # 3. Return the new Response DTO
     return OrgCreateResponseDto(
       id=newOrg.id, 
       name=newOrg.name, 

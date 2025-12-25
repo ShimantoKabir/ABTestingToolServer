@@ -66,31 +66,15 @@
   },
   {
     "key": "7",
-    "label": "Menu",
-    "icon": "pi pi-fw pi-bars",
-    "children": [
-      {
-        "key": "7-1",
-        "label": "Template",
-        "icon": "pi pi-fw pi-list",
-        "data": {
-          "href": "/menu/template",
-          "actions": [
-            "Act:Create-Menu-Template",
-            "Act:Get-Menu-Template",
-            "Act:Get-Menu-Templates"
-          ]
-        }
-      },
-      {
-        "key": "7-2",
-        "label": "Manage",
-        "icon": "pi pi-fw pi-cog",
-        "data": {
-          "href": "/menu/manage",
-          "actions": ["Act:Create-Menu", "Act:Get-Menus"]
-        }
-      }
-    ]
+    "label": "Menu Template",
+    "icon": "pi pi-fw pi-list",
+    "data": {
+      "href": "/menu-template",
+      "actions": [
+        "Act:Create-Menu-Template",
+        "Act:Get-Menu-Template",
+        "Act:Get-Menu-Templates"
+      ]
+    }
   }
 ]

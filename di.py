@@ -31,6 +31,8 @@ from src.metrics.repository.MetricsRepositoryImp import MetricsRepositoryImp
 from src.bucket.repository.BucketRepositoryImp import BucketRepositoryImp
 from src.decision.services.DecisionService import DecisionService
 from src.utils.CacheService import CacheService
+from src.project.repository.ProjectRepositoryImp import ProjectRepositoryImp
+from src.db.repository.UserProjectLinkRepositoryImp import UserProjectLinkRepositoryImp
 
 def getCacheService() -> CacheService:
   return CacheService()
@@ -77,6 +79,9 @@ def getOrgService(db: DBSessionDep, bgTask: BackgroundTasks) -> OrgService:
   roleRepo = RoleRepositoryImp(db)
   userOrgLinkRepo = UserOrgLinkRepositoryImp(db)
   mtRepo = MenuTemplateRepositoryImp(db)
+
+  projectRepo = ProjectRepositoryImp(db)
+  userProjectLinkRepo = UserProjectLinkRepositoryImp(db)
   
   crypto = CryptContext(schemes=["bcrypt"], deprecated="auto")
   fileService = getFileService()
@@ -90,7 +95,9 @@ def getOrgService(db: DBSessionDep, bgTask: BackgroundTasks) -> OrgService:
     fileService, 
     emailService, 
     userOrgLinkRepo, 
-    mtRepo
+    mtRepo,
+    projectRepo,
+    userProjectLinkRepo
   )
 
 def getExperimentService(db: DBSessionDep) -> ExperimentService:
