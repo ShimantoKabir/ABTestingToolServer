@@ -17,6 +17,13 @@ class UserOrgLinkRepositoryImp(UserOrgLinkRepository):
     self.db.refresh(userOrgLink)
 
     return userOrgLink
+  
+  def getSuperAdminsByOrgId(self, orgId: int) -> list[UserOrgLink]:
+    return self.db.exec(
+      select(UserOrgLink)
+      .where(UserOrgLink.orgId == orgId)
+      .where(UserOrgLink.super == True)
+    ).all()
 
 
 

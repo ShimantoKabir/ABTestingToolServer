@@ -59,6 +59,16 @@ class UserRepositoryImp(UserRepository):
       .join(User, UserOrgLink.userId==User.id)
       .where(UserOrgLink.orgId == orgId)
     ).one()
+  
+  def getUserDetailsByOrgAndUser(self, userId: int, orgId: int):
+    return self.db.exec(
+      select(User, UserOrgLink, Role.name, MenuTemplate.name)
+      .join(UserOrgLink, UserOrgLink.userId == User.id)
+      .join(Role, UserOrgLink.roleId == Role.id, isouter=True) 
+      .join(MenuTemplate, UserOrgLink.menuTemplateId == MenuTemplate.id, isouter=True)
+      .where(User.id == userId)
+      .where(UserOrgLink.orgId == orgId)
+    ).first()
     
     
 

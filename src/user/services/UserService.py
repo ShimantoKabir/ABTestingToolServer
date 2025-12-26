@@ -237,3 +237,33 @@ class UserService:
       userResponseDtoList.append(urDto)
 
     return PaginationResponseDto[UserResponseDto](items=userResponseDtoList, total=total)
+  
+
+  def getUserDetailsByOrgAndUser(self, userId: int, orgId: int) -> UserResponseDto: 
+    # 1. Call the repo method (returns Tuple of 4 items)
+    result = self.repo.getUserDetailsByOrgAndUser(userId, orgId)
+
+    if not result:
+      raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, 
+        detail="User not found in this organization!"
+      )
+    
+    # 2. Unpack the tuple
+    user, link, roleName, mtName = result
+
+    # 3. Return the DTO
+    return UserResponseDto(
+      id=user.id,
+      email=user.email,
+      verified=user.verified,
+      firstName=user.firstName,
+      lastName=user.lastName,
+      contactNumber=user.contactNumber,
+      disabled=link.disabled,
+      super=link.super,
+      roleId=link.roleId,
+      menuTemplateId=link.menuTemplateId,
+      roleName=roleName,
+      menuTemplateName=mtName
+    )

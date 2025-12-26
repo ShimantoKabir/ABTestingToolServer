@@ -58,3 +58,20 @@ async def getUsers(
   userService: UserServiceDep
 ) -> PaginationResponseDto[UserResponseDto]:  
   return userService.getUsers(reqDto)
+
+@routes.get(
+  "/{userId}/orgs/{orgId}/details", 
+  tags=["user"],
+  name="act:get-user-org-details",
+  response_model=UserResponseDto
+)
+def getUserDetailsByOrgAndUser(
+    userId: int, 
+    orgId: int, 
+    userService: UserServiceDep
+) -> UserResponseDto:
+  """
+  Get detailed user information specifically for a given organization context,
+  including their Role Name and Menu Template Name.
+  """
+  return userService.getUserDetailsByOrgAndUser(userId, orgId)

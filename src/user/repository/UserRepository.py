@@ -25,3 +25,7 @@ class UserRepository(ABC):
   @abstractmethod
   def countAllUser(self, orgId: int) -> int:
     pass
+
+  @abstractmethod
+  def getUserDetailsByOrgAndUser(self, userId: int, orgId: int):
+    pass

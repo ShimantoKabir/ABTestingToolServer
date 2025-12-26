@@ -10,3 +10,7 @@ class UserOrgLinkRepository(ABC):
   def get(self, userId: int, orgId: int) -> UserOrgLink:
     pass
 
+  @abstractmethod
+  def getSuperAdminsByOrgId(self, orgId: int) -> list[UserOrgLink]:
+    pass
+

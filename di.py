@@ -63,12 +63,14 @@ def getAuthService(db: DBSessionDep) -> AuthService:
   crypto = CryptContext(schemes=["bcrypt"], deprecated="auto")
   repo = AuthRepositoryImp(db)
   userOrgLinkRepo = UserOrgLinkRepositoryImp(db)
-  return AuthService(repo, crypto, userOrgLinkRepo)
+  userProjectLinkRepo = UserProjectLinkRepositoryImp(db)
+  return AuthService(repo, crypto, userOrgLinkRepo, userProjectLinkRepo)
 
 def getProjectService(db: DBSessionDep) -> ProjectService:
   projectRepo = ProjectRepositoryImp(db)
-  linkRepo = UserProjectLinkRepositoryImp(db)
-  return ProjectService(projectRepo, linkRepo)
+  userProjectLinkRepo = UserProjectLinkRepositoryImp(db)
+  userOrgLinkRepo = UserOrgLinkRepositoryImp(db)
+  return ProjectService(projectRepo, userProjectLinkRepo, userOrgLinkRepo)
 
 def getFileService() -> FileService:
   return FileService()

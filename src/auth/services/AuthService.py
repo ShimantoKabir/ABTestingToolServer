@@ -12,17 +12,20 @@ from src.auth.dtos.AuthRefreshResponseDto import AuthRefreshResponseDto
 from src.auth.dtos.AuthRefreshRequestDto import AuthRefreshRequestDto
 from jwt import ExpiredSignatureError
 from src.auth.dtos.tokens import Token
+from src.db.repository.UserProjectLinkRepository import UserProjectLinkRepository
 
 class AuthService:
   def __init__(
       self, 
       authRepository : AuthRepository, 
       crypto: CryptContext, 
-      userOrgLinkRepo: UserOrgLinkRepository
+      userOrgLinkRepo: UserOrgLinkRepository,
+      userProjectLinkRepo: UserProjectLinkRepository
     ):
     self.repo = authRepository
     self.crypto = crypto
     self.userOrgLinkRepo = userOrgLinkRepo
+    self.userProjectLinkRepo = userProjectLinkRepo
 
   def login(self, reqDto: LoginRequestDto) -> str:
     dbUser: User = self.repo.getUserByEmail(reqDto.email)
@@ -38,28 +41,38 @@ class AuthService:
     if not isPasswordVerified:
       raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password!")
     
-    # --- LOGIC USING EXISTING FUNCTION ---
     activeOrgs = []
-    
-    # Loop through the user's linked organizations
     for org in dbUser.orgs:
-      # Call the EXISTING get(userId, orgId) function
       link = self.userOrgLinkRepo.get(dbUser.id, org.id)
       
-      # Check if link exists and is NOT disabled
       if link and not link.disabled:
-        activeOrgs.append(org)
+        activeOrgs.append({
+        "id": org.id,
+        "name": org.name
+      })
     
-    # If the user has no active organizations, prevent login
     if not activeOrgs:
       raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN, 
         detail="Your account is disabled in all organizations!"
       )
-    # -------------------------------------
 
-    # Pass the filtered activeOrgs list to generateToken
-    token = self.generateToken(dbUser)
+    activeProjects = []
+    for project in dbUser.projects:
+      link = self.userProjectLinkRepo.get(dbUser.id, project.id)
+      
+      if link and not link.disabled:
+        activeProjects.append({
+        "id": project.id,
+        "name": project.name
+      })
+    if not activeProjects:
+      raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN, 
+        detail="You do not have any project assigned!"
+      )
+
+    token = self.generateToken(dbUser, activeOrgs, activeProjects)
 
     res = LoginResponseDto(accessToken=token.accessToken, refreshToken=token.refreshToken)
     return res
@@ -87,24 +100,9 @@ class AuthService:
     res  = AuthRefreshResponseDto(accessToken=token.accessToken,refreshToken=token.refreshToken)
     return res
   
-  def generateToken(self, user: User)->Token:
+  def generateToken(self, user: User, orgs, projects)->Token:
     accessTokenExpires = datetime.now(timezone.utc) + timedelta(minutes=int(Config.getValByKey("ACCESS_TOKEN_EXPIRE_MINUTES")))
     refreshTokenExpires = datetime.now(timezone.utc) + timedelta(minutes=int(Config.getValByKey("REFRESH_TOKEN_EXPIRE_MINUTES")))
-
-    orgs = []
-    for o in user.orgs:
-      orgs.append({
-        "id": o.id,
-        "name": o.name,
-        "disabled": o.disabled
-      })
-
-    projects = []
-    for p in user.projects:
-      projects.append({
-        "id": p.id,
-        "name": p.name
-      })
 
     accessToken = jwt.encode({
       "sub" : user.email,

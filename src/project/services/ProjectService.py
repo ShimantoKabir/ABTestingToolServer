@@ -1,3 +1,4 @@
+from src.db.repository.UserOrgLinkRepository import UserOrgLinkRepository
 from src.project.repository.ProjectRepository import ProjectRepository
 from src.db.repository.UserProjectLinkRepository import UserProjectLinkRepository
 from src.project.dtos.ProjectCreateRequestDto import ProjectCreateRequestDto
@@ -18,27 +19,31 @@ class ProjectService:
   def __init__(
       self, 
       projectRepo: ProjectRepository, 
-      linkRepo: UserProjectLinkRepository
+      linkRepo: UserProjectLinkRepository,
+      userOrgLinkRepo: UserOrgLinkRepository
     ):
     self.repo = projectRepo
     self.linkRepo = linkRepo
+    self.userOrgLinkRepo = userOrgLinkRepo
 
   def createProject(self, reqDto: ProjectCreateRequestDto, userId: int) -> ProjectCreateResponseDto:
-    # 1. Create the project
     newProject = self.repo.add(Project(
       name=reqDto.name,
       description=reqDto.description,
       orgId=reqDto.orgId
     ))
 
-    # 2. Link the creating user as a Super Admin for this project
-    self.linkRepo.add(UserProjectLink(
-      userId=userId,
-      projectId=newProject.id,
-      super=True,
-      disabled=False,
-      permissionType=PermissionType.OWNER
-    ))
+    superAdminLinks = self.userOrgLinkRepo.getSuperAdminsByOrgId(reqDto.orgId)
+
+    for adminLink in superAdminLinks:
+      if adminLink.userId:
+        self.linkRepo.add(UserProjectLink(
+          userId=adminLink.userId, 
+          projectId=newProject.id,
+          super=True,
+          disabled=False,
+          permissionType=PermissionType.OWNER
+        ))
 
     return ProjectCreateResponseDto(
       id=newProject.id,
