@@ -48,7 +48,6 @@ class UserService:
     otp = self.generateOtp()
     truncatedPassword = reqDto.password[:72]
     
-    # Note: UserOrgLink will be created automatically with default values (disabled=True)
     newUser = self.repo.add(User(
       email=reqDto.email,
       password=self.crypto.hash(truncatedPassword),
@@ -238,7 +237,6 @@ class UserService:
 
     return PaginationResponseDto[UserResponseDto](items=userResponseDtoList, total=total)
   
-
   def getUserDetailsByOrgAndUser(self, userId: int, orgId: int) -> UserResponseDto: 
     # 1. Call the repo method (returns Tuple of 4 items)
     result = self.repo.getUserDetailsByOrgAndUser(userId, orgId)
