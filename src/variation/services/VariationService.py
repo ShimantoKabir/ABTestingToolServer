@@ -95,5 +95,23 @@ class VariationService:
       title=v.title,
       traffic=v.traffic, # type: ignore
       js=v.js,
-      css=v.css
+      css=v.css,
+      isControl=v.isControl
     )
+  
+  def getVariations(self, experimentId: int) -> list[VariationResponseDto]:
+    self.experimentRepo.getById(experimentId) 
+    variations = self.repo.getByExperimentId(experimentId)
+    return [self._mapToResponse(v) for v in variations]
+  
+  def deleteVariation(self, id: int) -> VariationResponseDto:
+    variation = self.repo.getById(id)
+
+    if variation.isControl:
+      raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST, 
+        detail="Cannot delete the Control variation!"
+      )
+    
+    self.repo.delete(variation)
+    return self._mapToResponse(variation)

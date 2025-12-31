@@ -3,6 +3,7 @@ from di import MetricsServiceDep
 from src.metrics.dtos.MetricsCreateRequestDto import MetricsCreateRequestDto
 from src.metrics.dtos.MetricsResponseDto import MetricsResponseDto
 from src.metrics.dtos.MetricsTrackResponseDto import MetricsTrackResponseDto
+from src.metrics.model.TriggerMode import TriggerMode
 
 routes = APIRouter()
 
@@ -51,6 +52,11 @@ async def deleteMetric(
 )
 async def trackMetric(
     id: int,
-    service: MetricsServiceDep
+    service: MetricsServiceDep,
+    mode: TriggerMode = TriggerMode.LIVE # Defaults to 'Live' if not provided
   ):
-  return service.trackMetric(id)
+  """
+  Track a metric event. 
+  Query Param: ?mode=QA or ?mode=Live (Default)
+  """
+  return service.trackMetric(id, mode)

@@ -38,3 +38,7 @@ class VariationRepositoryImp(VariationRepository):
     self.db.commit()
     self.db.refresh(variation)
     return variation
+
+  def delete(self, variation: Variation):
+    self.db.delete(variation)
+    self.db.commit()

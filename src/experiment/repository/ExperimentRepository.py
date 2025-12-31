@@ -26,3 +26,11 @@ class ExperimentRepository(ABC):
   @abstractmethod
   def getAllActive(self, rows: int, page: int, projectId: int) -> list[Experiment]:
     pass
+
+  @abstractmethod
+  def getAllByProjectAndOrg(self, rows: int, page: int, projectId: int, orgId: int) -> list[Experiment]:
+    pass
+    
+  @abstractmethod
+  def countByProjectAndOrg(self, projectId: int, orgId: int) -> int:
+    pass

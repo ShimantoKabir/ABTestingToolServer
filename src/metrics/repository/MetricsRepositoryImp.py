@@ -4,6 +4,7 @@ from db import DBSessionDep
 from sqlmodel import select
 from fastapi import status, HTTPException
 from sqlalchemy import update
+from src.metrics.model.TriggerMode import TriggerMode
 
 class MetricsRepositoryImp(MetricsRepository):
   def __init__(self, db: DBSessionDep):
@@ -30,16 +31,22 @@ class MetricsRepositoryImp(MetricsRepository):
     self.db.delete(metric)
     self.db.commit()
 
-  def incrementTrigger(self, id: int):
-    # This generates SQL: UPDATE metrics SET triggered = triggered + 1 WHERE id = :id
-    statement = (
+  def incrementTrigger(self, id: int, mode: TriggerMode):
+    if mode == TriggerMode.QA:
+      statement = (
         update(Metrics)
         .where(Metrics.id == id)
-        .values(triggered=Metrics.triggered + 1)
-    )
+        .values(triggeredOnQA=Metrics.triggeredOnQA + 1) # <--- Updated
+      )
+    else:
+      statement = (
+        update(Metrics)
+        .where(Metrics.id == id)
+        .values(triggeredOnLIVE=Metrics.triggeredOnLIVE + 1) # <--- Updated
+      )
+      
     result = self.db.exec(statement)
     self.db.commit()
 
-    # Check if a row was actually updated (to handle 404 silently or explicitly)
     if result.rowcount == 0:
       raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Metric not found!")

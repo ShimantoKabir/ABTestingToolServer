@@ -8,6 +8,7 @@ class PaginationRequestDto:
   rows: int = Field(..., gt=0)
   page: int = Field(..., gt=0)
   total: Optional[int] = None
+  projectId: Optional[int] = None
 
   
   

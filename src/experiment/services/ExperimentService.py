@@ -45,8 +45,9 @@ class ExperimentService:
     newExp.variations.append(Variation(
       title="Control", 
       traffic=100,
-      js=None,
-      css=None
+      js=None,  
+      css=None,
+      isControl=True
     ))
 
     savedExp = self.repo.add(newExp)
@@ -125,3 +126,34 @@ class ExperimentService:
       createdAt=e.createdAt,
       updatedAt=e.updatedAt
     )
+  
+  def getExperimentsByProjectAndOrg(self, reqDto: PaginationRequestDto) -> PaginationResponseDto[ExperimentResponseDto]:
+    # 1. Defensive: Ensure projectId exists
+    if not reqDto.projectId:
+       # Fallback or Error depending on your preference. 
+       # Here we assume strict mode as requested previously.
+       raise HTTPException(status_code=400, detail="Project ID is required!")
+
+    targetProjectId = reqDto.projectId
+    targetOrgId = reqDto.orgId
+
+    # 2. Handle Total Count (Using new Repo method)
+    total = reqDto.total
+    if total is None or total == 0:
+      total = self.repo.countByProjectAndOrg(projectId=targetProjectId, orgId=targetOrgId)
+
+    # 3. Fetch Data (Using new Repo method)
+    # This automatically filters out experiments if the project doesn't belong to the org
+    exps = self.repo.getAllByProjectAndOrg(
+      rows=reqDto.rows, 
+      page=reqDto.page, 
+      projectId=targetProjectId,
+      orgId=targetOrgId
+    )
+    
+    # 4. Map to Response
+    items = []
+    for e in exps:
+      items.append(self._mapToResponse(e))
+
+    return PaginationResponseDto[ExperimentResponseDto](items=items, total=total)

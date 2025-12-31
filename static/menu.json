@@ -52,7 +52,7 @@
     "key": "5",
     "label": "Experiment",
     "data": {
-      "href": "/experiments",
+      "href": "/experiment",
       "actions": [
         "act:create-experiment",
         "act:get-experiments",

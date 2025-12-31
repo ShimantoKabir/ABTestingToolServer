@@ -47,3 +47,34 @@ async def updateTrafficAllocation(
   service: VariationServiceDep
 ) -> list[VariationResponseDto]:
   return service.updateTrafficAllocation(experimentId, reqDto)
+
+@routes.get(
+  "/experiments/{experimentId}/variations", 
+  response_model=list[VariationResponseDto], 
+  tags=["variation"],
+  name="act:get-variations"
+)
+async def getVariations(
+    experimentId: int,
+    service: VariationServiceDep
+  ) -> list[VariationResponseDto]:
+  """
+  Get all variations associated with a specific experiment.
+  """
+  return service.getVariations(experimentId)
+
+@routes.delete(
+  "/variations/{id}",
+  response_model=VariationResponseDto,
+  tags=["variation"],
+  name="act:delete-variation"
+)
+async def deleteVariation(
+  id: int,
+  service: VariationServiceDep
+) -> VariationResponseDto:
+  """
+  Delete a variation. 
+  Note: The Control variation cannot be deleted.
+  """
+  return service.deleteVariation(id)

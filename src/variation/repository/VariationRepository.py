@@ -22,3 +22,7 @@ class VariationRepository(ABC):
   @abstractmethod
   def edit(self, variation: Variation) -> Variation:
     pass
+
+  @abstractmethod
+  def delete(self, variation: Variation):
+    pass

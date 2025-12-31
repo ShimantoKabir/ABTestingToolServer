@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 1dd1a8c73d6c
+Revision ID: dda253ce9217
 Revises: 
-Create Date: 2025-12-24 12:50:24.341832
+Create Date: 2025-12-31 13:39:30.284150
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel
 
 
 # revision identifiers, used by Alembic.
-revision: str = '1dd1a8c73d6c'
+revision: str = 'dda253ce9217'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -150,7 +150,8 @@ def upgrade() -> None:
     sa.Column('title', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('custom', sa.Boolean(), nullable=False),
     sa.Column('selector', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('triggered', sa.Integer(), nullable=True),
+    sa.Column('triggeredOnLIVE', sa.Integer(), nullable=True),
+    sa.Column('triggeredOnQA', sa.Integer(), nullable=True),
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('experimentId', sa.Integer(), nullable=True),
     sa.Column('createdAt', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
@@ -164,6 +165,7 @@ def upgrade() -> None:
     sa.Column('css', sa.Text(), nullable=True),
     sa.Column('title', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('traffic', sa.Integer(), nullable=True),
+    sa.Column('isControl', sa.Boolean(), nullable=False),
     sa.Column('experimentId', sa.Integer(), nullable=True),
     sa.Column('createdAt', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('updatedAt', sa.DateTime(timezone=True), nullable=True),

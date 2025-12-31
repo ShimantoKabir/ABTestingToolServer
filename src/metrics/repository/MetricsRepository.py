@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from src.metrics.model.Metrics import Metrics
+from src.metrics.model.TriggerMode import TriggerMode
 
 class MetricsRepository(ABC):
   
@@ -20,5 +21,5 @@ class MetricsRepository(ABC):
     pass
 
   @abstractmethod
-  def incrementTrigger(self, id: int):
+  def incrementTrigger(self, id: int, mode: TriggerMode):
     pass

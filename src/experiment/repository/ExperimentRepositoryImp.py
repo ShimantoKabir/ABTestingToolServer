@@ -6,6 +6,7 @@ from fastapi import status, HTTPException
 from sqlmodel import select
 from sqlalchemy import func
 from sqlalchemy.orm import selectinload
+from src.project.model.Project import Project
 
 class ExperimentRepositoryImp(ExperimentRepository):
   def __init__(self, db: DBSessionDep):
@@ -50,9 +51,27 @@ class ExperimentRepositoryImp(ExperimentRepository):
       .where(Experiment.projectId == projectId)
       .where(Experiment.status == ExperimentStatus.ACTIVE)
       .options(
-          selectinload(Experiment.conditions),
-          selectinload(Experiment.variations),
-          selectinload(Experiment.metrics)
+        selectinload(Experiment.conditions),
+        selectinload(Experiment.variations),
+        selectinload(Experiment.metrics)
       )
       .offset(offset).limit(rows)
     ).all()
+  
+  def getAllByProjectAndOrg(self, rows: int, page: int, projectId: int, orgId: int) -> list[Experiment]:
+    offset: int = (page - 1) * rows
+    return self.db.exec(
+      select(Experiment)
+      .join(Project, Experiment.projectId == Project.id)
+      .where(Experiment.projectId == projectId)
+      .where(Project.orgId == orgId)
+      .offset(offset).limit(rows)
+    ).all()
+
+  def countByProjectAndOrg(self, projectId: int, orgId: int) -> int:
+    return self.db.exec(
+      select(func.count(Experiment.id))
+      .join(Project, Experiment.projectId == Project.id)
+      .where(Experiment.projectId == projectId)
+      .where(Project.orgId == orgId)
+    ).one()

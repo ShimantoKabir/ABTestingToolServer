@@ -5,6 +5,7 @@ from src.metrics.dtos.MetricsResponseDto import MetricsResponseDto
 from src.metrics.model.Metrics import Metrics
 from src.metrics.dtos.MetricsTrackResponseDto import MetricsTrackResponseDto
 from fastapi import HTTPException, status
+from src.metrics.model.TriggerMode import TriggerMode
 
 class MetricsService:
   def __init__(
@@ -47,9 +48,9 @@ class MetricsService:
     self.repo.delete(metric)
     return self._mapToResponse(metric)
   
-  def trackMetric(self, id: int):
-    self.repo.incrementTrigger(id)
-    return MetricsTrackResponseDto(message="Metric tracked successfully")
+  def trackMetric(self, id: int, mode: TriggerMode): # <--- Updated
+    self.repo.incrementTrigger(id, mode)
+    return MetricsTrackResponseDto(message=f"Metric tracked successfully in {mode} mode")
 
   def _mapToResponse(self, m: Metrics) -> MetricsResponseDto:
     return MetricsResponseDto(
@@ -59,5 +60,6 @@ class MetricsService:
       custom=m.custom,
       selector=m.selector,
       description=m.description,
-      triggered=m.triggered if m.triggered else 0
+      triggeredOnQA=m.triggeredOnQA if m.triggeredOnQA else 0, # <--- Added
+      triggeredOnLIVE=m.triggeredOnLIVE if m.triggeredOnLIVE else 0 # <--- Added
     )

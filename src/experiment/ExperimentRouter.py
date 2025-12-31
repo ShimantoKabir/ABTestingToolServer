@@ -60,3 +60,20 @@ async def updateExperiment(
   Update specific fields of an experiment (Title, Status, Traffic Allocation, etc.)
   """
   return service.updateExperiment(id, reqDto)
+
+
+@routes.post(
+  "/experiments-by-project-and-org",
+  tags=["experiment"],
+  name="act:experiments-by-project-and-org",
+  response_model=PaginationResponseDto[ExperimentResponseDto]
+)
+async def getExperiments(
+  reqDto: PaginationRequestDto, 
+  service: ExperimentServiceDep
+) -> PaginationResponseDto[ExperimentResponseDto]:  
+  """
+  Get experiments by Project ID (and Org ID for verification).
+  Payload: { "orgId": 1, "projectId": 10, "rows": 10, "page": 1 }
+  """
+  return service.getExperimentsByProjectAndOrg(reqDto)

@@ -9,3 +9,4 @@ class VariationResponseDto:
   traffic: int
   js: Optional[str]
   css: Optional[str]
+  isControl: bool
